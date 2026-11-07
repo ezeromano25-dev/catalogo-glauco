@@ -1,0 +1,14 @@
+fonts/
+logos/
+fotos/
+prev/
+__pycache__/
+*.pdf
+_*.html
+stock.json
+revision_filas.json
+especies.json
+tapa.json
+correcciones.json
+textos.json
+ultimo-stock.txt
