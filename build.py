@@ -17,7 +17,7 @@ os.makedirs(FOTOS, exist_ok=True)
 # Textos editables (Ezequiel los corrige en la pestaña "Tapa" de la planilla de revisión).
 # Los valores de abajo son los originales; textos.json, si existe, los reemplaza.
 TEXTOS = {
-    "tapa_aviso": "Este catálogo se arma todos los martes con las plantas y semillas disponibles ese día. Como las ventas siguen durante la semana, alguna especie puede agotarse antes de tu pedido. Confirmá la disponibilidad en la tienda o por WhatsApp.",
+    "tapa_aviso": "Este catálogo se arma todos los miércoles con las plantas y semillas disponibles ese día. Como las ventas siguen durante la semana, alguna especie puede agotarse antes de tu pedido. Confirmá la disponibilidad en la tienda o por WhatsApp.",
     "comprar_1_titulo": "Envíos a toda la Argentina en cajas de 24 plantas",
     "comprar_1_texto": "Todas en maceta M12. Pueden ser de una misma especie o surtidas, como quieras.",
     "comprar_2_titulo": "¿Querés más plantas?",

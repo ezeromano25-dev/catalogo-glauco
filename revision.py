@@ -5,6 +5,10 @@
       Escribe revision_filas.json con las filas para las pestañas "Especies" y "Tapa"
       y ultimo-stock.txt con la lista de esta semana.
 
+  python3 revision.py cambios stock.json claves.json ultimo-stock.txt
+      Modo semanal (incremental): con las claves que ya están en la planilla, calcula qué filas
+      borrar y cuáles agregar (cambios_planilla.json). Así no se reescriben las 84 filas.
+
   python3 revision.py aplicar especies.json tapa.json
       Lee lo que devolvió get_values de cada pestaña (lista de filas, con encabezado),
       guarda las correcciones en correcciones.json y textos.json y muestra qué cambió.
@@ -102,8 +106,68 @@ def aplicar(especies_path, tapa_path):
     print("\n".join(cambios) if cambios else "Sin correcciones.")
 
 
+def _fila_especie(p, anteriores):
+    secs = secciones_de(p)
+    sci, comun = F.nombres(p)
+    nueva = "Sí" if anteriores and p["nombre_tienda"] not in anteriores else ""
+    return [", ".join(secs), p["nombre_tienda"], F.cientifico_a_texto(sci), "",
+            comun or "", "", "", nueva, p["url"], F._slug(p["url"])]
+
+
+def cambios(stock_path, claves_path, ultimo_path=None):
+    """Planilla incremental: compara el stock con las claves que ya están en la pestaña Especies.
+
+    claves_path: lo que devolvió get_values de Especies!J2:J300 (una clave por fila, desde la fila 2).
+    Escribe cambios_planilla.json con:
+      borrar_filas: números de fila (1 = encabezado) de especies que ya no están, de mayor a menor;
+      agregar: filas completas de especies nuevas, para append_values al final de la pestaña.
+    También reescribe ultimo-stock.txt.
+    """
+    stock = json.load(open(stock_path, encoding="utf-8"))
+    claves_hoja = [(r[0].strip() if r else "") for r in _filas_de(claves_path)]
+    anteriores = set()
+    if ultimo_path and os.path.exists(ultimo_path):
+        anteriores = {l.split("|", 1)[-1].strip() for l in open(ultimo_path, encoding="utf-8") if l.strip()}
+    actuales, lista = {}, []
+    for p in stock:
+        if F.EXCLUIR.search(p["nombre_tienda"]) or not secciones_de(p):
+            continue
+        actuales[F._slug(p["url"])] = p
+        for s in secciones_de(p):
+            lista.append(f"{s} | {p['nombre_tienda']}")
+    borrar = [i + 2 for i, k in enumerate(claves_hoja) if k and k not in actuales]
+    en_hoja = set(claves_hoja)
+    agregar = [_fila_especie(p, anteriores) for k, p in actuales.items() if k not in en_hoja]
+    agregar.sort(key=lambda r: (r[0], r[2].lower()))
+    json.dump({"borrar_filas": sorted(borrar, reverse=True), "agregar": agregar},
+              open(os.path.join(HERE, "cambios_planilla.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    open(os.path.join(HERE, "ultimo-stock.txt"), "w", encoding="utf-8").write("\n".join(lista) + "\n")
+    print(f"{len(borrar)} filas para borrar, {len(agregar)} para agregar")
+
+
+def celdas_corregidas(especies_path):
+    """Después de aplicar: celdas a actualizar en Especies para que "así sale" muestre lo corregido
+    y las columnas amarillas queden vacías. Escribe celdas_planilla.json: [[rango, valor], ...]."""
+    out = []
+    for i, r in enumerate(_filas_de(especies_path)[1:]):
+        r = list(r) + [""] * (10 - len(r))
+        fila = i + 2
+        if r[3].strip():
+            out += [[f"Especies!C{fila}", r[3].strip()], [f"Especies!D{fila}", ""]]
+        if r[5].strip():
+            com = "" if r[5].strip() in ("-", "—") else r[5].strip()
+            out += [[f"Especies!E{fila}", com], [f"Especies!F{fila}", ""]]
+        if r[6].strip():
+            out.append([f"Especies!G{fila}", ""])
+    json.dump(out, open(os.path.join(HERE, "celdas_planilla.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    print(f"{len(out)} celdas para actualizar")
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "filas":
         filas(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None)
     elif sys.argv[1] == "aplicar":
         aplicar(sys.argv[2], sys.argv[3])
+        celdas_corregidas(sys.argv[2])
+    elif sys.argv[1] == "cambios":
+        cambios(sys.argv[2], sys.argv[3], sys.argv[4] if len(sys.argv) > 4 else None)

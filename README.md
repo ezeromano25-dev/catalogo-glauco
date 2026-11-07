@@ -11,7 +11,7 @@ bash setup.sh                                  # tipografías, logo y librerías
 # copiar del proyecto: correcciones.json, textos.json, ultimo-stock.txt
 python3 fetch_stock.py .                       # stock, precios, fotos y fichas de la tienda
 python3 build.py                               # PDF: Glauco-disponibles-AAAA-MM-DD.pdf
-python3 revision.py filas stock.json ultimo-stock.txt   # filas para la planilla de revisión
+python3 revision.py cambios stock.json claves.json ultimo-stock.txt   # cambios para la planilla de revisión
 ```
 
 | Archivo | Qué hace |
@@ -20,7 +20,7 @@ python3 revision.py filas stock.json ultimo-stock.txt   # filas para la planilla
 | `fichas.py` | Nombres científicos, exposición, sequía, frío y medidas a partir de la ficha |
 | `build.py` | Diseño del PDF (marca Glauco). No se cambia sin pedido de Ezequiel |
 | `revision.py` | Carga y aplica las correcciones de la planilla de revisión |
-| `top_vendidas.py` | Ranking "Más vendidos" de la tienda con stock (plan B de la tarea de los miércoles) |
+| `top_vendidas.py` | Ranking "Más vendidos" de la tienda con stock (plan B de la tarea de "más vendidas") |
 | `setup.sh` | Prepara tipografías (versión fija), logo y librerías |
 
 Los datos que cambian cada semana (`correcciones.json`, `textos.json`, `ultimo-stock.txt`) viven en el proyecto, no acá.
